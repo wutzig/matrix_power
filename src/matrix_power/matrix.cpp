@@ -92,6 +92,33 @@ void Matrix::scale(double factor) {
         m_data[i] *= factor;
     }
 }
+
+Matrix Matrix::svd(std::vector<double>& eigen_values) {
+    Matrix answer(m_dimension);
+
+    char jobvl = 'N';
+    char jobvr = 'N';
+    long dimension = static_cast<long>(m_dimension);
+    long lwork = 0;
+    long info = 0;
+    std::vector<double> dummy;
+    dummy.reserve(m_dimension);
+    std::vector<double> work;
+    work.reserve(4 * dimension);
+
+    dgeev_(
+        &jobvl, &jobvr,
+        &dimension,
+        m_data, &dimension,
+        eigen_values.data(), dummy.data(),
+        nullptr, &dimension,
+        answer.m_data, &dimension,
+        work.data(), &lwork,
+        &info
+    );
+    return answer;
+}
+
 Matrix::~Matrix() {
     delete[] m_data;
 }
