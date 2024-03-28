@@ -11,18 +11,22 @@ int dgemm_(
 }
 class Matrix {
 public:
-    Matrix(uint32_t dim = 3);
+    Matrix() = default;
+    Matrix(uint32_t);
     Matrix(const Matrix&) = delete;
     Matrix& operator=(const Matrix&) = delete;
     Matrix(Matrix&&);
     Matrix& operator=(Matrix&&);
     Matrix& copy_from(const Matrix&);
-    Matrix times(const Matrix&);
-    void print();
+    Matrix times(const Matrix&) const;
+    Matrix operator-(const Matrix&) const;
+    void scale(double);
+    double max_abs() const;
+    void print() const;
     ~Matrix();
 
 private:
     int m_dimension;
-    double* m_data;
+    double* m_data = nullptr;
 };
 }

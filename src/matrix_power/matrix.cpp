@@ -1,14 +1,24 @@
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <matrix_power/matrix.hpp>
 
 namespace matrix_power {
 Matrix::Matrix(uint32_t dim) : m_dimension(dim) {
     m_data = new double[m_dimension * m_dimension];
-    for(uint32_t i = 0; i < m_dimension * m_dimension; i++) {
-        m_data[i] = i + 1;
+    std::fill(m_data, m_data + (m_dimension * m_dimension), 0.0);
+    double diag = 10.0 / m_dimension;
+    double off_diag = 1.0 / (m_dimension * m_dimension);
+    m_data[0] = diag;
+    m_data[1] = off_diag;
+    for(uint32_t i = 1; i < m_dimension - 1; i++) {
+        m_data[i * m_dimension + i - 1] = off_diag;
+        m_data[i * m_dimension + i] = diag;
+        m_data[i * m_dimension + i + 1] = off_diag;
     }
+    m_data[m_dimension * m_dimension - 2] = off_diag;
+    m_data[m_dimension * m_dimension - 1] = diag;
 }
 Matrix::Matrix(Matrix&& matrix) : m_dimension(matrix.m_dimension) {
     m_data = matrix.m_data;
@@ -26,16 +36,17 @@ Matrix& Matrix::copy_from(const Matrix& matrix) {
     return *this;
 }
 Matrix& Matrix::operator=(Matrix&& matrix) {
+    delete[] m_data;
     m_dimension = matrix.m_dimension;
     m_data = matrix.m_data;
     matrix.m_data = nullptr;
     return *this;
 }
-Matrix Matrix::times(const Matrix& matrix) {
+Matrix Matrix::times(const Matrix& matrix) const {
     Matrix answer(m_dimension);
     
-    char transa ='N';
-    char transb ='N';
+    char transa = 'N';
+    char transb = 'N';
     long dimension = static_cast<long>(m_dimension);
     double alpha = 1.0;
     double beta = 0;
@@ -49,15 +60,36 @@ Matrix Matrix::times(const Matrix& matrix) {
         &beta, 
         answer.m_data, &dimension
     );
-
     return answer;
 }
-void Matrix::print() {
+void Matrix::print() const {
     for(uint32_t i = 0; i < m_dimension; i++) {
         for(uint32_t j = 0; j < m_dimension; j++) {
             std::cout << m_data[m_dimension * i + j] << '\t';
         }
         std::cout << std::endl;
+    }
+}
+
+Matrix Matrix::operator-(const Matrix& matrix) const {
+    Matrix answer(m_dimension);
+    for(uint32_t i = 0; i < m_dimension * m_dimension; i++) {
+        answer.m_data[i] = m_data[i] - matrix.m_data[i];
+    }
+    return answer;
+}
+
+double Matrix::max_abs() const {
+    double answer = std::abs(m_data[0]);
+    for(uint32_t i = 0; i < m_dimension * m_dimension; i++) {
+        answer = std::max(answer, std::abs(m_data[i]));
+    }
+    return answer;
+}
+
+void Matrix::scale(double factor) {
+    for(uint32_t i = 0; i < m_dimension * m_dimension; i++) {
+        m_data[i] *= factor;
     }
 }
 Matrix::~Matrix() {
