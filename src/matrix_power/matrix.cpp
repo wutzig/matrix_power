@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <vector>
 #include <matrix_power/matrix.hpp>
 
 namespace matrix_power {
@@ -9,7 +10,7 @@ Matrix::Matrix(uint32_t dim) : m_dimension(dim) {
     m_data = new double[m_dimension * m_dimension];
     std::fill(m_data, m_data + (m_dimension * m_dimension), 0.0);
     double diag = 10.0 / m_dimension;
-    double off_diag = 1.0 / (m_dimension * m_dimension);
+    double off_diag = -1.0 / m_dimension;
     m_data[0] = diag;
     m_data[1] = off_diag;
     for(uint32_t i = 1; i < m_dimension - 1; i++) {
@@ -42,10 +43,10 @@ Matrix& Matrix::operator=(Matrix&& matrix) {
     matrix.m_data = nullptr;
     return *this;
 }
-Matrix Matrix::times(const Matrix& matrix) const {
+Matrix Matrix::times(const Matrix& matrix, bool transpose_a) const {
     Matrix answer(m_dimension);
     
-    char transa = 'N';
+    char transa = transpose_a ? 'T' : 'N';
     char transb = 'N';
     long dimension = static_cast<long>(m_dimension);
     double alpha = 1.0;
@@ -93,18 +94,17 @@ void Matrix::scale(double factor) {
     }
 }
 
-Matrix Matrix::svd(std::vector<double>& eigen_values) {
+Matrix Matrix::svd(std::vector<double>& eigen_values) const {
     Matrix answer(m_dimension);
+    answer.scale(0);
 
     char jobvl = 'N';
-    char jobvr = 'N';
+    char jobvr = 'V';
     long dimension = static_cast<long>(m_dimension);
-    long lwork = 0;
+    long lwork = 4 * dimension;
     long info = 0;
-    std::vector<double> dummy;
-    dummy.reserve(m_dimension);
-    std::vector<double> work;
-    work.reserve(4 * dimension);
+    std::vector<double> dummy(m_dimension);
+    std::vector<double> work(lwork);
 
     dgeev_(
         &jobvl, &jobvr,
@@ -119,6 +119,20 @@ Matrix Matrix::svd(std::vector<double>& eigen_values) {
     return answer;
 }
 
+Matrix Matrix::power(uint32_t power) const {
+    std::vector<double> eigen_values(m_dimension);
+
+    Matrix eigen_vectors = svd(eigen_values);
+    Matrix answer(m_dimension);
+    answer.scale(0);
+    for(uint32_t i = 0; i < m_dimension; i++) {
+        answer.m_data[i * m_dimension + i] = std::pow(eigen_values[i], power);
+    }
+    answer = eigen_vectors.times(answer, true);
+    answer = answer.times(eigen_vectors);
+
+    return answer;
+}
 Matrix::~Matrix() {
     delete[] m_data;
 }

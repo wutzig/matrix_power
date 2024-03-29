@@ -37,10 +37,10 @@ int main()
     uint32_t dimensions[n_dim] {10, 100, 1000};
     uint32_t powers[n_pow] {10, 100, 1000};
 
-    for(int dim_i = 0; dim_i < 3; dim_i++)
+    for(int dim_i = 0; dim_i < n_dim; dim_i++)
     {
         std::cout << "Dimension " << dimensions[dim_i] << std::endl; 
-        for(int pow_i = 0; pow_i < 3; pow_i++)
+        for(int pow_i = 0; pow_i < n_pow; pow_i++)
         {
             std::cout << "Power " << powers[pow_i] << std::endl;
             Matrix matrix_for(dimensions[dim_i]);
@@ -58,8 +58,16 @@ int main()
             matrix_wtf = power_wtf(std::move(matrix_wtf), original, powers[pow_i]);
             t2 = std::chrono::high_resolution_clock::now();
             
+            std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << "ms ";
+            
+            Matrix matrix_svd(dimensions[dim_i]);
+            t1 = std::chrono::high_resolution_clock::now();
+            matrix_svd = matrix_svd.power(powers[pow_i]);
+            t2 = std::chrono::high_resolution_clock::now();
+            
             std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << "ms\n";
-            std::cout << "\tDifference " << (matrix_for - matrix_wtf).max_abs() << std::endl;
+            std::cout << "\tDifference wtf " << (matrix_for - matrix_wtf).max_abs() << std::endl;
+            std::cout << "\tDifference svd " << (matrix_for - matrix_svd).max_abs() << std::endl;
         }
         std::cout << std::endl;
     }

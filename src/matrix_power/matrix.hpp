@@ -35,13 +35,14 @@ public:
     ~Matrix();
     
     Matrix& copy_from(const Matrix&);
-    Matrix times(const Matrix&) const;
+    Matrix times(const Matrix&, bool transpose_a = false) const;
     Matrix operator-(const Matrix&) const;
     void scale(double);
     double max_abs() const;
     void print() const;
-    Matrix svd(std::vector<double>&);
-
+    Matrix svd(std::vector<double>&) const;
+    Matrix power(uint32_t) const;
+    
 private:
     int m_dimension;
     double* m_data = nullptr;
