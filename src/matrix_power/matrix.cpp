@@ -44,11 +44,21 @@ Matrix& Matrix::operator=(Matrix&& matrix) {
     return *this;
 }
 Matrix Matrix::times(const Matrix& matrix, bool transpose_a) const {
-    Matrix answer(m_dimension);
-    
+    Matrix answer;
+    if(m_data == nullptr) {
+        answer.copy_from(matrix);
+        return answer;
+    }
+    if(matrix.m_data == nullptr) {
+        answer.copy_from(*this);
+        return answer;
+    }
+    answer.m_dimension = matrix.m_dimension;
+    answer.m_data = new double[answer.m_dimension * answer.m_dimension];
+
     char transa = transpose_a ? 'T' : 'N';
     char transb = 'N';
-    long dimension = static_cast<long>(m_dimension);
+    long dimension = static_cast<long>(answer.m_dimension);
     double alpha = 1.0;
     double beta = 0;
     

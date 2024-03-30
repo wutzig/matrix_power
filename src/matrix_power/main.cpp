@@ -28,7 +28,7 @@ matrix_power::Matrix power_recursive(matrix_power::Matrix&& matrix, const matrix
 }
 
 matrix_power::Matrix power_wtf(matrix_power::Matrix&& matrix, uint32_t power) {
-    matrix_power::Matrix answer = matrix_power::Matrix::make_unit(matrix.get_dimension());
+    matrix_power::Matrix answer;
     while(power > 0) {
         if(power % 2 == 1) {
             answer = answer.times(matrix);
