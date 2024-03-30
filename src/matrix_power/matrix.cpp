@@ -133,6 +133,21 @@ Matrix Matrix::power(uint32_t power) const {
 
     return answer;
 }
+
+Matrix Matrix::make_unit(uint32_t dimension) {
+    Matrix answer;
+    answer.m_dimension = dimension;
+    answer.m_data = new double[answer.m_dimension * answer.m_dimension];
+    std::fill(answer.m_data, answer.m_data + (answer.m_dimension * answer.m_dimension), 0.0);
+    for(uint32_t i = 0; i < answer.m_dimension; i++) {
+        answer.m_data[i * answer.m_dimension + i] = 1.0;
+    }
+    return answer;
+}
+
+uint32_t Matrix::get_dimension() const {
+    return m_dimension;
+}
 Matrix::~Matrix() {
     delete[] m_data;
 }

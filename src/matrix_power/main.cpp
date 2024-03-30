@@ -13,18 +13,30 @@ matrix_power::Matrix power_for(matrix_power::Matrix&& matrix, uint32_t power) {
     return std::move(matrix);
 }
 
-matrix_power::Matrix power_wtf(matrix_power::Matrix&& matrix, const matrix_power::Matrix& orig, uint32_t power) {
+matrix_power::Matrix power_recursive(matrix_power::Matrix&& matrix, const matrix_power::Matrix& orig, uint32_t power) {
     if (power == 1) {
         return std::move(matrix);
     }
     
     uint32_t half_power = std::floor(power / 2);
-    matrix = power_wtf(std::move(matrix), orig, half_power);
+    matrix = power_recursive(std::move(matrix), orig, half_power);
     matrix = matrix.times(matrix);
     if(power % 2 == 1) {
         matrix = matrix.times(orig);
     }
     return std::move(matrix);
+}
+
+matrix_power::Matrix power_wtf(matrix_power::Matrix&& matrix, uint32_t power) {
+    matrix_power::Matrix answer = matrix_power::Matrix::make_unit(matrix.get_dimension());
+    while(power > 0) {
+        if(power % 2 == 1) {
+            answer = answer.times(matrix);
+        }
+        matrix = matrix.times(matrix);
+        power = power << 1;
+    }
+    return answer;
 }
 
 int main()
@@ -37,7 +49,14 @@ int main()
     uint32_t dimensions[n_dim] {10, 100, 1000};
     uint32_t powers[n_pow] {10, 100, 1000};
 
-    for(int dim_i = 0; dim_i < n_dim; dim_i++)
+    Matrix mat(3);
+    power_for(std::move(mat), 3);
+    mat.print();
+    Matrix mat2(3);
+    power_wtf(std::move(mat2), 3);
+    mat2.print();
+
+    for(int dim_i = 0; dim_i < 0; dim_i++)
     {
         std::cout << "Dimension " << dimensions[dim_i] << std::endl; 
         for(int pow_i = 0; pow_i < n_pow; pow_i++)
@@ -55,7 +74,7 @@ int main()
             Matrix original;
             original.copy_from(matrix_wtf);
             t1 = std::chrono::high_resolution_clock::now();
-            matrix_wtf = power_wtf(std::move(matrix_wtf), original, powers[pow_i]);
+            matrix_wtf = power_recursive(std::move(matrix_wtf), original, powers[pow_i]);
             t2 = std::chrono::high_resolution_clock::now();
             
             std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << "ms ";

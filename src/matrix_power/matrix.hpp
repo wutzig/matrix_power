@@ -42,6 +42,8 @@ public:
     void print() const;
     Matrix svd(std::vector<double>&) const;
     Matrix power(uint32_t) const;
+    uint32_t get_dimension() const;
+    static Matrix make_unit(uint32_t dimension);
     
 private:
     int m_dimension;
