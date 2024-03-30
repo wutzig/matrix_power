@@ -34,7 +34,7 @@ matrix_power::Matrix power_wtf(matrix_power::Matrix&& matrix, uint32_t power) {
             answer = answer.times(matrix);
         }
         matrix = matrix.times(matrix);
-        power = power << 1;
+        power = power >> 1;
     }
     return answer;
 }
@@ -49,14 +49,7 @@ int main()
     uint32_t dimensions[n_dim] {10, 100, 1000};
     uint32_t powers[n_pow] {10, 100, 1000};
 
-    Matrix mat(3);
-    power_for(std::move(mat), 3);
-    mat.print();
-    Matrix mat2(3);
-    power_wtf(std::move(mat2), 3);
-    mat2.print();
-
-    for(int dim_i = 0; dim_i < 0; dim_i++)
+    for(int dim_i = 0; dim_i < n_dim; dim_i++)
     {
         std::cout << "Dimension " << dimensions[dim_i] << std::endl; 
         for(int pow_i = 0; pow_i < n_pow; pow_i++)
@@ -70,11 +63,18 @@ int main()
             
             std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << "ms ";
             
-            Matrix matrix_wtf(dimensions[dim_i]);
-            Matrix original;
-            original.copy_from(matrix_wtf);
+            Matrix matrix_recursive(dimensions[dim_i]);
             t1 = std::chrono::high_resolution_clock::now();
-            matrix_wtf = power_recursive(std::move(matrix_wtf), original, powers[pow_i]);
+            Matrix original;
+            original.copy_from(matrix_recursive);
+            matrix_recursive = power_recursive(std::move(matrix_recursive), original, powers[pow_i]);
+            t2 = std::chrono::high_resolution_clock::now();
+            
+            std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << "ms ";
+            
+            Matrix matrix_wtf(dimensions[dim_i]);
+            t1 = std::chrono::high_resolution_clock::now();
+            matrix_wtf = power_wtf(std::move(matrix_wtf), powers[pow_i]);
             t2 = std::chrono::high_resolution_clock::now();
             
             std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << "ms ";
@@ -85,6 +85,7 @@ int main()
             t2 = std::chrono::high_resolution_clock::now();
             
             std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << "ms\n";
+            std::cout << "\tDifference rec " << (matrix_for - matrix_recursive).max_abs() << std::endl;
             std::cout << "\tDifference wtf " << (matrix_for - matrix_wtf).max_abs() << std::endl;
             std::cout << "\tDifference svd " << (matrix_for - matrix_svd).max_abs() << std::endl;
         }
